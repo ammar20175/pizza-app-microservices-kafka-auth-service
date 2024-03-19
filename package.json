@@ -7,8 +7,9 @@
     "dev": "node src/server.js",
     "format:check": "prettier . --check",
     "format:fix": "prettier . --write",
-    "lint":"eslint .",
-    "lint:fix":"eslint . --fix"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky"
   },
   "author": "Ammar Ahmad <ammar.ahmad6410@gmail.com>",
   "license": "ISC",
@@ -18,6 +19,7 @@
     "@typescript-eslint/parser": "^7.3.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.11",
     "prettier": "3.2.5",
     "typescript": "^5.4.2",
     "typescript-eslint": "^7.3.1"
