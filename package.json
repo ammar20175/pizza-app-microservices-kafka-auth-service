@@ -1,0 +1,28 @@
+{
+  "name": "auth-service",
+  "version": "1.0.0",
+  "description": "A User Management Service",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "format:check": "prettier . --check",
+    "format:fix": "prettier . --write",
+    "lint":"eslint .",
+    "lint:fix":"eslint . --fix"
+  },
+  "author": "Ammar Ahmad <ammar.ahmad6410@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.11.28",
+    "@typescript-eslint/eslint-plugin": "^7.3.1",
+    "@typescript-eslint/parser": "^7.3.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "3.2.5",
+    "typescript": "^5.4.2",
+    "typescript-eslint": "^7.3.1"
+  },
+  "dependencies": {
+    "@eslint/js": "^8.57.0"
+  }
+}
