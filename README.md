@@ -13,8 +13,8 @@ The project plan is to development a microservices application for a pizza resta
 
 ## Technologies That Will Be Used:
 
-- **Backend:** ExpressJs TypeScript,
-- **Frontend:** Nextjs, TypeScript,
-- **Databases:** PostgreSQL, MongoDB
-- **Message Broker:** Kafka
-- **Real-time Communication:** WebSockets
+-   **Backend:** ExpressJs TypeScript,
+-   **Frontend:** Nextjs, TypeScript,
+-   **Databases:** PostgreSQL, MongoDB
+-   **Message Broker:** Kafka
+-   **Real-time Communication:** WebSockets
