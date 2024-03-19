@@ -3,8 +3,9 @@ function user(username: string): string {
     // console.log('name');
     const a = {
         n: 'sa',
-    };c = a['n'];
-    return name;
+    };
+    const c = a.n;
+    return name + c;
 }
 
 user('Am');
