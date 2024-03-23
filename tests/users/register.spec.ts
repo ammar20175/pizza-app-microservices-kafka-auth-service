@@ -2,8 +2,8 @@ import { DataSource } from 'typeorm';
 import app from '../../src/app';
 import request from 'supertest';
 import { AppDataSource } from '../../src/config/data-source';
-import { truncateTables } from '../utils';
 import { User } from '../../src/entity/User';
+import { Roles } from '../../src/constants';
 
 describe('POST /auth/register', () => {
     let connection: DataSource;
@@ -13,11 +13,12 @@ describe('POST /auth/register', () => {
     });
 
     beforeEach(async () => {
-        await truncateTables(connection);
+        await connection.dropDatabase();
+        await connection.synchronize();
     });
 
     afterAll(async () => {
-        // await connection.destroy();
+        await connection.destroy();
     });
 
     describe('Given all fields', () => {
@@ -71,6 +72,80 @@ describe('POST /auth/register', () => {
             expect(users[0].firstName).toBe(userData.firstName);
             expect(users[0].lastName).toBe(userData.lastName);
             expect(users[0].email).toBe(userData.email);
+        });
+
+        it('should return an id of the created user', async () => {
+            const userData = {
+                firstName: 'Ammar',
+                lastName: 'Ahmad',
+                email: 'ammar@gmail.com',
+                password: '1234567',
+            };
+
+            const response = await request(app)
+                .post('/auth/register')
+                .send(userData);
+
+            expect(response.body).toHaveProperty('id');
+            const repository = connection.getRepository(User);
+            const users = await repository.find();
+            expect((response.body as Record<string, string>).id).toBe(
+                users[0].id,
+            );
+        });
+
+        it('should assign a customer role', async () => {
+            const userData = {
+                firstName: 'Ammar',
+                lastName: 'Ahmad',
+                email: 'ammar@gmail.com',
+                password: '1234567',
+            };
+
+            await request(app).post('/auth/register').send(userData);
+
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            expect(users[0]).toHaveProperty('role');
+            expect(users[0].role).toBe(Roles.CUSTOMER);
+        });
+
+        it('should store hashed password in database', async () => {
+            const userData = {
+                firstName: 'Ammar',
+                lastName: 'Ahmad',
+                email: 'ammar@gmail.com',
+                password: '1234567',
+            };
+
+            await request(app).post('/auth/register').send(userData);
+
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            expect(users[0].password).not.toBe(userData.password);
+            expect(users[0].password).toHaveLength(60);
+            expect(users[0].password).toMatch(/^\$2[a|b]\$\d+\$/);
+        });
+
+        it('should return 400 status code if email is already exists', async () => {
+            const userData = {
+                firstName: 'Ammar',
+                lastName: 'Ahmad',
+                email: 'ammar@gmail.com',
+                password: '1234567',
+            };
+
+            const userRepository = AppDataSource.getRepository(User);
+            await userRepository.save({ ...userData, role: Roles.CUSTOMER });
+
+            const response = await request(app)
+                .post('/auth/register')
+                .send(userData);
+
+            const users = await userRepository.find();
+
+            expect(response.statusCode).toBe(400);
+            expect(users).toHaveLength(1);
         });
     });
 
