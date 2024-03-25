@@ -4,6 +4,8 @@ import request from 'supertest';
 import { AppDataSource } from '../../src/config/data-source';
 import { User } from '../../src/entity/User';
 import { Roles } from '../../src/constants';
+import { isJwt } from '../utils';
+import { RefreshToken } from '../../src/entity/RefreshToken';
 
 describe('POST /auth/register', () => {
     let connection: DataSource;
@@ -146,6 +148,66 @@ describe('POST /auth/register', () => {
 
             expect(response.statusCode).toBe(400);
             expect(users).toHaveLength(1);
+        });
+
+        it('should return access token and refresh token inside a cookie', async () => {
+            const userData = {
+                firstName: 'Ammar',
+                lastName: 'Ahmad',
+                email: 'ammar@gmail.com',
+                password: '12345678',
+            };
+
+            const response = await request(app)
+                .post('/auth/register')
+                .send(userData);
+
+            interface Headers {
+                ['set-cookie']?: string[];
+            }
+
+            let accessToken: string | null = null;
+            let refreshToken: string | null = null;
+            const cookies = (response.headers as Headers)['set-cookie'] || [];
+
+            cookies.forEach((cookie) => {
+                if (cookie.startsWith('accessToken=')) {
+                    accessToken = cookie.split(';')[0].split('=')[1];
+                }
+
+                if (cookie.startsWith('refreshToken=')) {
+                    refreshToken = cookie.split(';')[0].split('=')[1];
+                }
+            });
+
+            expect(accessToken).not.toBeNull();
+            expect(refreshToken).not.toBeNull();
+            expect(isJwt(accessToken)).toBeTruthy();
+            expect(isJwt(refreshToken)).toBeTruthy();
+        });
+
+        it('should store the refresh token in the database', async () => {
+            const userData = {
+                firstName: 'Rakesh',
+                lastName: 'K',
+                email: 'rakesh@mern.space',
+                password: 'password',
+            };
+
+            const response = await request(app)
+                .post('/auth/register')
+                .send(userData);
+
+            const refreshTokenRepo = connection.getRepository(RefreshToken);
+
+            const tokens = await refreshTokenRepo
+                .createQueryBuilder('refreshToken')
+                .where('refreshToken.userId = :userId', {
+                    userId: (response.body as Record<string, string>).id,
+                })
+                .getMany();
+
+            expect(tokens).toHaveLength(1);
         });
     });
 
