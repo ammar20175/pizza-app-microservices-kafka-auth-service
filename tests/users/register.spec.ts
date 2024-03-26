@@ -188,10 +188,10 @@ describe('POST /auth/register', () => {
 
         it('should store the refresh token in the database', async () => {
             const userData = {
-                firstName: 'Rakesh',
-                lastName: 'K',
-                email: 'rakesh@mern.space',
-                password: 'password',
+                firstName: 'Ammar',
+                lastName: 'Ahmad',
+                email: 'ammar@gmail.com',
+                password: '12345678',
             };
 
             const response = await request(app)
