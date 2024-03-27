@@ -337,7 +337,7 @@ describe('POST /auth/register', () => {
             expect(users).toHaveLength(0);
         });
 
-        it('shoud return an array of error messages if email is missing', async () => {
+        it('should return an array of error messages if email is missing', async () => {
             const userData = {
                 firstName: 'Ammar',
                 lastName: 'Ahmad',

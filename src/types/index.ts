@@ -10,3 +10,16 @@ export interface UserData {
 export interface RegisterUserInterface extends Request {
     body: UserData;
 }
+
+export interface AuthRequest extends Request {
+    auth: {
+        sub: string;
+        role: string;
+        id?: string;
+    };
+}
+
+export type AuthCookie = {
+    accessToken: string;
+    refreshToken: string;
+};
