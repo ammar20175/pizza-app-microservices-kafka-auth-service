@@ -7,6 +7,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import { TokenService } from '../services/TokenService';
 import createHttpError from 'http-errors';
 import { CredentialService } from '../services/CredentialService';
+import { User } from '../entity/User';
 
 export class AuthController {
     constructor(
@@ -48,29 +49,7 @@ export class AuthController {
                 role: user.role,
             };
 
-            const accessToken = this.tokenService.generateAccessToken(payload);
-
-            const newRefreshToken =
-                await this.tokenService.presistRefreshToken(user);
-
-            const refreshToken = this.tokenService.generateRefreshToken({
-                ...payload,
-                id: String(newRefreshToken.id),
-            });
-
-            res.cookie('accessToken', accessToken, {
-                domain: 'localhost',
-                sameSite: 'strict',
-                maxAge: 1000 * 60 * 60, // 1h
-                httpOnly: true,
-            });
-
-            res.cookie('refreshToken', refreshToken, {
-                domain: 'localhost',
-                sameSite: 'strict',
-                maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
-                httpOnly: true,
-            });
+            await this.handleTokens(res, user, payload);
 
             res.status(201).json({ id: user.id });
         } catch (err) {
@@ -122,29 +101,7 @@ export class AuthController {
                 role: user.role,
             };
 
-            const accessToken = this.tokenService.generateAccessToken(payload);
-
-            const newRefreshToken =
-                await this.tokenService.presistRefreshToken(user);
-
-            const refreshToken = this.tokenService.generateRefreshToken({
-                ...payload,
-                id: String(newRefreshToken.id),
-            });
-
-            res.cookie('accessToken', accessToken, {
-                domain: 'localhost',
-                sameSite: 'strict',
-                maxAge: 1000 * 60 * 60, // 1h
-                httpOnly: true,
-            });
-
-            res.cookie('refreshToken', refreshToken, {
-                domain: 'localhost',
-                sameSite: 'strict',
-                maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
-                httpOnly: true,
-            });
+            await this.handleTokens(res, user, payload);
 
             this.logger.info('User has been logged in ', { id: user.id });
             res.status(200).json({ id: user.id });
@@ -166,9 +123,8 @@ export class AuthController {
                 role: req.auth.role,
             };
 
-            const accessToken = this.tokenService.generateAccessToken(payload);
-
             const user = await this.userService.findById(Number(req.auth.sub));
+
             if (!user) {
                 const error = createHttpError(400, 'No User found');
                 next(error);
@@ -176,27 +132,7 @@ export class AuthController {
             }
 
             await this.tokenService.deleteRefreshToken(Number(req.auth.id));
-            const newRefreshToken =
-                await this.tokenService.presistRefreshToken(user);
-
-            const refreshToken = this.tokenService.generateRefreshToken({
-                ...payload,
-                id: String(newRefreshToken.id),
-            });
-
-            res.cookie('accessToken', accessToken, {
-                domain: 'localhost',
-                sameSite: 'strict',
-                maxAge: 1000 * 60 * 60, // 1h
-                httpOnly: true,
-            });
-
-            res.cookie('refreshToken', refreshToken, {
-                domain: 'localhost',
-                sameSite: 'strict',
-                maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
-                httpOnly: true,
-            });
+            await this.handleTokens(res, user, payload);
 
             this.logger.info('User has been logged in', { id: user.id });
             res.json({ id: user.id });
@@ -204,5 +140,31 @@ export class AuthController {
             next(err);
             return;
         }
+    }
+
+    private async handleTokens(res: Response, user: User, payload: JwtPayload) {
+        const accessToken = this.tokenService.generateAccessToken(payload);
+
+        const newRefreshToken =
+            await this.tokenService.presistRefreshToken(user);
+
+        const refreshToken = this.tokenService.generateRefreshToken({
+            ...payload,
+            id: String(newRefreshToken.id),
+        });
+
+        res.cookie('accessToken', accessToken, {
+            domain: 'localhost',
+            sameSite: 'strict',
+            maxAge: 1000 * 60 * 60, // 1h
+            httpOnly: true,
+        });
+
+        res.cookie('refreshToken', refreshToken, {
+            domain: 'localhost',
+            sameSite: 'strict',
+            maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
+            httpOnly: true,
+        });
     }
 }
