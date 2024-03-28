@@ -142,6 +142,23 @@ export class AuthController {
         }
     }
 
+    async logout(req: AuthRequest, res: Response, next: NextFunction) {
+        try {
+            await this.tokenService.deleteRefreshToken(Number(req.auth.id));
+            this.logger.info('Refresh token has been deleted', {
+                id: req.auth.id,
+            });
+            this.logger.info('User has been logged out', { id: req.auth.sub });
+
+            res.clearCookie('accessToken');
+            res.clearCookie('refreshToken');
+            res.status(200).json({});
+        } catch (err) {
+            next(err);
+            return;
+        }
+    }
+
     private async handleTokens(res: Response, user: User, payload: JwtPayload) {
         const accessToken = this.tokenService.generateAccessToken(payload);
 
