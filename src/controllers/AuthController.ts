@@ -158,4 +158,51 @@ export class AuthController {
         const user = await this.userService.findById(Number(req.auth.sub));
         res.status(200).json({ ...user, password: undefined });
     }
+
+    async refresh(req: AuthRequest, res: Response, next: NextFunction) {
+        try {
+            const payload: JwtPayload = {
+                sub: req.auth.sub,
+                role: req.auth.role,
+            };
+
+            const accessToken = this.tokenService.generateAccessToken(payload);
+
+            const user = await this.userService.findById(Number(req.auth.sub));
+            if (!user) {
+                const error = createHttpError(400, 'No User found');
+                next(error);
+                return;
+            }
+
+            await this.tokenService.deleteRefreshToken(Number(req.auth.id));
+            const newRefreshToken =
+                await this.tokenService.presistRefreshToken(user);
+
+            const refreshToken = this.tokenService.generateRefreshToken({
+                ...payload,
+                id: String(newRefreshToken.id),
+            });
+
+            res.cookie('accessToken', accessToken, {
+                domain: 'localhost',
+                sameSite: 'strict',
+                maxAge: 1000 * 60 * 60, // 1h
+                httpOnly: true,
+            });
+
+            res.cookie('refreshToken', refreshToken, {
+                domain: 'localhost',
+                sameSite: 'strict',
+                maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
+                httpOnly: true,
+            });
+
+            this.logger.info('User has been logged in', { id: user.id });
+            res.json({ id: user.id });
+        } catch (err) {
+            next(err);
+            return;
+        }
+    }
 }
