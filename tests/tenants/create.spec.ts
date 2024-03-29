@@ -67,22 +67,21 @@ describe('POST /tenants', () => {
             expect(tenants[0].address).toBe(tenantData.address);
         });
 
-        // it("should return 401 if user is not autheticated", async () => {
-        //     const tenantData = {
-        //         name: "Tenant name",
-        //         address: "Tenant address",
-        //     };
+        it('should return 401 if user is not autheticated', async () => {
+            const tenantData = {
+                name: 'Tenant name',
+                address: 'Tenant address',
+            };
 
-        //     const response = await request(app)
-        //         .post("/tenants")
-        //         .send(tenantData);
-        //     expect(response.statusCode).toBe(401);
+            const response = await request(app)
+                .post('/tenants')
+                .send(tenantData);
+            expect(response.statusCode).toBe(401);
 
-        //     const tenantRepository = connection.getRepository(Tenant);
-        //     const tenants = await tenantRepository.find();
-
-        //     expect(tenants).toHaveLength(0);
-        // });
+            const tenantRepository = connection.getRepository(Tenant);
+            const tenants = await tenantRepository.find();
+            expect(tenants).toHaveLength(0);
+        });
 
         // it("should return 403 if user is not an admin", async () => {
         //     const managerToken = jwks.token({
