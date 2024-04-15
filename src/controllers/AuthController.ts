@@ -63,7 +63,7 @@ export class AuthController {
     async login(req: RegisterUserInterface, res: Response, next: NextFunction) {
         const result = validationResult(req);
         if (!result.isEmpty()) {
-            return res.status(400).json({ errors: result.array() });
+            return next(createHttpError(400, result.array()[0].msg as string));
         }
 
         const { email, password } = req.body;
